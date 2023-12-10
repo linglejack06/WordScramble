@@ -11,6 +11,9 @@ struct ContentView: View {
     @State private var usedWords = [String]()
     @State private var rootWord = ""
     @State private var newWord = ""
+    @State private var errorTitle = ""
+    @State private var errorMessage = ""
+    @State private var showingError = false
     var body: some View {
         NavigationStack {
             List {
@@ -30,11 +33,28 @@ struct ContentView: View {
             }.navigationTitle(rootWord)
                 .onSubmit(addNewWord)
                 .onAppear(perform: startGame)
+                .alert(errorTitle, isPresented: $showingError) {
+                    Button("OK") {}
+                } message: {
+                    Text(errorMessage)
+                }
         }
     }
     func addNewWord() {
         newWord = newWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         guard newWord.count > 0 else { return }
+        guard isOriginal(word: newWord) else {
+            wordError(title: "Word used already", message: "Be more original")
+            return
+        }
+        guard isPossible(word: newWord) else {
+            wordError(title: "Word not possible", message: "You cannot spell \(newWord) from \(rootWord)")
+            return
+        }
+        guard isReal(word: newWord) else {
+            wordError(title: "Word not recognized", message: "\(rootWord) is not a part of the english dictionary")
+            return
+        }
         withAnimation {
             usedWords.insert(newWord, at: 0)
         }
@@ -70,6 +90,11 @@ struct ContentView: View {
         let range = NSRange(location: 0, length: word.utf16.count)
         let mispelledRange = checker.rangeOfMisspelledWord(in: word, range: range, startingAt: 0, wrap: false, language: "en")
         return mispelledRange.location == NSNotFound
+    }
+    func wordError(title: String, message: String) {
+        errorTitle = title
+        errorMessage = message
+        showingError = true
     }
 }
 
