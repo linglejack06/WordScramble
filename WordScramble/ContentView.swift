@@ -38,11 +38,17 @@ struct ContentView: View {
                 } message: {
                     Text(errorMessage)
                 }
+                .toolbar {
+                    Button("New Root Word", action: startGame)
+                }
         }
     }
     func addNewWord() {
         newWord = newWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        guard newWord.count > 0 else { return }
+        guard newWord.count > 2 else {
+            wordError(title: "Word length too short", message: "\(newWord) must be atleast 3 characters long")
+            return
+        }
         guard isOriginal(word: newWord) else {
             wordError(title: "Word used already", message: "Be more original")
             return
